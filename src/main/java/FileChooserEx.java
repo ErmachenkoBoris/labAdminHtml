@@ -21,6 +21,8 @@ import javax.swing.text.Highlighter;
 
 public class FileChooserEx {
     //private static int[] disStart;
+    int EditStartSymbol = 0;
+    int EditEndSymbol = 0;
     private static int[] disStart = {10,20, 0};
     private static int[] disCount = {5,10,0};
     public static void main(String[] args) {
@@ -41,7 +43,9 @@ public class FileChooserEx {
         final Path[] finalPath = {Paths.get("")};
         final int[] StartEdit = {0};
         final int[] EndEdit = {0};
-
+        final JTextArea editArea = new JTextArea("Edit");
+        final JButton editBtnConfirm = new JButton("Confirm Edit");
+        final String[] BeforEdit = {""};
         JButton editBitton = new JButton("edit");
         editBitton.setActionCommand("текст который выводится нажатием на кнопку");
 
@@ -75,6 +79,26 @@ public class FileChooserEx {
 
         panel.setAutoscrolls(true);
 
+
+
+        editBtnConfirm.addActionListener(new ActionListener(){        //обработчик событий кнопки
+            public void actionPerformed(ActionEvent e){
+                String editText=editArea.getText();
+                String partOneText = mainText.getText().substring(0, EditStartSymbol);
+                String partTWoText = mainText.getText().substring(EditEndSymbol+EditStartSymbol, mainText.getText().length());
+                mainText.setText(partOneText+editText+partTWoText);
+
+                panel.remove(editArea);
+                panel.remove(editBtnConfirm);
+                panel.add(mainText);
+                panel.validate();
+                panel.repaint();
+
+                scroll.validate();
+                scroll.repaint();
+            }
+        });
+
         editBitton.addActionListener(new ActionListener(){        //обработчик событий кнопки
             public void actionPerformed(ActionEvent e){
 
@@ -82,38 +106,35 @@ public class FileChooserEx {
                 StartEdit[0] = Integer.parseInt(inputEditStart.getText()); //ввод
                 EndEdit[0] = Integer.parseInt(inputEditEnd.getText()); //ввод
                 EndEdit[0]++;
-                System.out.println(StartEdit[0]);
-                System.out.println(EndEdit[0]);
 
                 try {
                     int flag=0;
                     int i=0;
-                    int EditStartSymbol = 0;
-                    int EditEndSymbol = 0;
+
                     String EditContent ="";
                     for (String s : Files.readAllLines(finalPath[0], StandardCharsets.UTF_8)) {
+                        if(flag==0) {EditStartSymbol += s.length();}
 
                         if(i>=StartEdit[0] && i<EndEdit[0]) {
                             if(flag!=1){flag =1;}
-                            System.out.println(i);
+
                             EditContent+=s;
                             EditEndSymbol+=s.length();
                             EditContent+='\n';
                         } else {
                             if(EditContent.length()!=0 && flag==1) {
                                 flag=2;
-                            JTextArea EditArea = new JTextArea("Edit");
-                            System.out.println(EditContent);
-                                EditArea.setText(EditContent);
 
-                                panel.add(EditArea);
+                                editArea.setText(EditContent);
+
+                                BeforEdit[0] = EditContent;
+                                panel.add(editBtnConfirm);
+                                panel.add(editArea);
                                 panel.validate();
                                 panel.repaint();
 
                                 scroll.validate();
                                 scroll.repaint();
-                            } else {
-                                EditStartSymbol += s.length();
                             }
                         }
                         i++;
@@ -130,26 +151,27 @@ public class FileChooserEx {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-//                JFileChooser saveFile = new JFileChooser();
-//                int result = saveFile.showSaveDialog(null);
-//
-//                if (result == JFileChooser.APPROVE_OPTION) {
-//
-//                    File targetFile = saveFile.getSelectedFile();
-//
-//                    try {
-//                        if (!targetFile.exists()) {
-//                            targetFile.createNewFile();
-//                        }
-//
-//                        FileWriter fw = new FileWriter(targetFile);
-//
-//                        fw.write(textArea.getText());
-//                        fw.close();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
+                JFileChooser saveFile = new JFileChooser();
+                int result = saveFile.showSaveDialog(null);
+
+                if (result == JFileChooser.APPROVE_OPTION) {
+
+                    File targetFile = saveFile.getSelectedFile();
+
+                    try {
+                        if (!targetFile.exists()) {
+                            targetFile.createNewFile();
+                        }
+
+                        FileWriter fw = new FileWriter(targetFile);
+
+                        fw.write(mainText.getText().replaceAll("\\(\\d{1,}\\)", ""));
+
+                        fw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
 
@@ -207,7 +229,6 @@ public class FileChooserEx {
                             } else {
                                 if (contentString.length() != 0 && dis==1) {
                                     dis=2;
-                                    System.out.println(contentString);
                                     wholeContentString+=contentString;
                                     mainText.setText(wholeContentString);
 
@@ -216,7 +237,6 @@ public class FileChooserEx {
                                     textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
                                     textCount++;
 
-                                    //System.out.println("contentDisString");
                                     contentString = "";
                                     k++;
 
