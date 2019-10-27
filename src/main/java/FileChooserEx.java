@@ -9,7 +9,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -18,8 +21,8 @@ import javax.swing.text.Highlighter;
 
 public class FileChooserEx {
     //private static int[] disStart;
-    private static int[] disStart = {10,0};
-    private static int[] disCount = {10,0};
+    private static int[] disStart = {10,20, 0};
+    private static int[] disCount = {5,10,0};
     public static void main(String[] args) {
 
         Runnable r = new Runnable() {
@@ -34,10 +37,23 @@ public class FileChooserEx {
     }
 
     private void createUI(final int[] disStart,final int[] disCount) {
-        ArrayList textAreaArray = new ArrayList<JTextArea>();
+
+        final Path[] finalPath = {Paths.get("")};
+        final int[] StartEdit = {0};
+        final int[] EndEdit = {0};
+
+        JButton editBitton = new JButton("edit");
+        editBitton.setActionCommand("текст который выводится нажатием на кнопку");
+
+
+        final JTextField inputEditStart = new JTextField(10);//поле ввода
+        final JTextField inputEditEnd = new JTextField(10);//поле ввода
+
+        JLabel outputLabelStart= new JLabel("edit FROM row:");
+        JLabel outputLabelEnd= new JLabel("edit TO row:");
+
+
         final JPanel panel = new JPanel();
-        //panel.add(textAreaArray);
-      // panel.setLayout(new BorderLayout());
 
         JFrame.setDefaultLookAndFeelDecorated(true);
         final JFrame frame = new JFrame();
@@ -51,19 +67,64 @@ public class FileChooserEx {
         final JButton saveBtn = new JButton("Save");
         final JButton openBtn = new JButton("Open");
 
-        final JTextArea[] textArea = new JTextArea[10];
-        final JTextArea[] textAreaDis = new JTextArea[10];
-
-        final JTextPane[] panelsText = new JTextPane[10];
-        final JTextPane[] panelsTextDis = new JTextPane[10];
 
         final JTextPane mainText = new JTextPane();
+        mainText.setEditable(false);
+
         final Highlighter highlighter =mainText.getHighlighter();
 
-        //final JTextPane[] panelsTextDis = new JTextPane[10];
+        panel.setAutoscrolls(true);
 
-        final int[] e = {0};
-        final int[] r = {0};
+        editBitton.addActionListener(new ActionListener(){        //обработчик событий кнопки
+            public void actionPerformed(ActionEvent e){
+
+
+                StartEdit[0] = Integer.parseInt(inputEditStart.getText()); //ввод
+                EndEdit[0] = Integer.parseInt(inputEditEnd.getText()); //ввод
+                EndEdit[0]++;
+                System.out.println(StartEdit[0]);
+                System.out.println(EndEdit[0]);
+
+                try {
+                    int flag=0;
+                    int i=0;
+                    int EditStartSymbol = 0;
+                    int EditEndSymbol = 0;
+                    String EditContent ="";
+                    for (String s : Files.readAllLines(finalPath[0], StandardCharsets.UTF_8)) {
+
+                        if(i>=StartEdit[0] && i<EndEdit[0]) {
+                            if(flag!=1){flag =1;}
+                            System.out.println(i);
+                            EditContent+=s;
+                            EditEndSymbol+=s.length();
+                            EditContent+='\n';
+                        } else {
+                            if(EditContent.length()!=0 && flag==1) {
+                                flag=2;
+                            JTextArea EditArea = new JTextArea("Edit");
+                            System.out.println(EditContent);
+                                EditArea.setText(EditContent);
+
+                                panel.add(EditArea);
+                                panel.validate();
+                                panel.repaint();
+
+                                scroll.validate();
+                                scroll.repaint();
+                            } else {
+                                EditStartSymbol += s.length();
+                            }
+                        }
+                        i++;
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+        });
+
 
         saveBtn.addActionListener(new ActionListener() {
 
@@ -91,6 +152,7 @@ public class FileChooserEx {
 //                }
             }
         });
+
         openBtn.addActionListener(new ActionListener() {
 
             @Override
@@ -98,46 +160,66 @@ public class FileChooserEx {
                 JFileChooser openFile = new JFileChooser();
                 int result = openFile.showOpenDialog(null);
                 if (result == JFileChooser.APPROVE_OPTION) {
-                    Path path = openFile.getSelectedFile().toPath();
+                    finalPath[0] = openFile.getSelectedFile().toPath();
                     try {
                         String contentString = "";
-                        String contentDisString = "";
+
                         int i=0;
                         int k=0;
-                        int j=0;
-                        int[] greenLights = new int[10];
-                        int[] redLights = new int[10];
-                        for (String s : Files.readAllLines(path, StandardCharsets.UTF_8)) {
+
+                        int dis=0;
+
+                        int textCount = 0;
+                        String wholeContentString = "";
+
+
+                        int[] lengthText = new int[10];
+                        DefaultHighlighter.DefaultHighlightPainter[] textLights = new DefaultHighlighter.DefaultHighlightPainter[10];
+
+                        for(int t=0; t<10;t++) {
+                            textLights[t]=new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
+                            lengthText[t]=0;
+
+                        }
+
+                        textCount++;
+
+                        for (String s : Files.readAllLines(finalPath[0], StandardCharsets.UTF_8)) {
+                            s="("+i+")"+s;
                             if(i>=disStart[k] && i< (disStart[k]+disCount[k])) {
+
+                                if(dis!=1)dis=1;
+
                                 if(i==disStart[k] && contentString.length()!=0) {
-                                   // textArea[e[0]] = new JTextArea("edit");
-                                   // textArea[e[0]].setText(contentString);
 
-                                    //panelsText[e[0]] = new JTextPane();
-                                   // panelsText[e[0]].setText(contentString);
+                                    wholeContentString+=contentString;
+                                    mainText.setText(wholeContentString);
 
-                                    mainText.setText(contentString);
-                                    highlighter.addHighlight(1, 10, new DefaultHighlighter.DefaultHighlightPainter(
-                                            Color.red));
+                                    lengthText[textCount]=wholeContentString.length();
+                                    textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
+                                    textCount++;
+
                                     contentString="";
-                                    e[0]++;
                                 }
-                                System.out.println("3324234");
-                                contentDisString += s;
-                                contentDisString += '\n';
-                               // System.out.println(contentDisString);
+                                contentString += s;
+                                contentString += '\n';
+
                             } else {
-                                if (contentDisString.length() != 0) {
+                                if (contentString.length() != 0 && dis==1) {
+                                    dis=2;
+                                    System.out.println(contentString);
+                                    wholeContentString+=contentString;
+                                    mainText.setText(wholeContentString);
 
-                                   // textAreaDis[r[0]] = new JTextArea("write");
-                                    //textAreaDis[r[0]].setText(contentDisString);
+                                    lengthText[textCount]=wholeContentString.length();
 
-                                    panelsTextDis[r[0]] = new JTextPane();
-                                    panelsTextDis[r[0]].setText(contentString);
-                                    System.out.println("contentDisString");
-                                    contentDisString = "";
-                                    r[0]++;
+                                    textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
+                                    textCount++;
+
+                                    //System.out.println("contentDisString");
+                                    contentString = "";
                                     k++;
+
                                     if (i == disStart[k]) {continue;}
                                 } else {
 
@@ -145,96 +227,59 @@ public class FileChooserEx {
                                     contentString += '\n';
                                 }
                             }
-
                             i++;
 
                         }
 
+
+
                         if(contentString.length()!=0){
-                            //textArea[e[0]] = new JTextArea("edit");
-                            //textArea[e[0]].setText(contentString);
+                            wholeContentString+=contentString;
+                            mainText.setText(wholeContentString);
 
-                            panelsText[e[0]] = new JTextPane();
-                            panelsText[e[0]].setText(contentString);
-                            e[0]++;
+                            lengthText[textCount]=wholeContentString.length();
+                            textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
+                            textCount++;
                         }
 
+                        for(int j=1; j< textCount; j++) {
 
-                        for(int z = 0; z< e[0]; z++){
-                            System.out.println("---------");
-
-
-                            //textAreaDis[z].setSize(50,200);
-
-                           // panel.add(textAreaDis[z]);
-
-                            panelsText[z].setSize(300,200);
-
-                            Highlighter h = panelsText[z].getHighlighter();
-                            h.addHighlight(1, 10, new DefaultHighlighter.DefaultHighlightPainter(
-                                    Color.red));
-                            panelsText[z].setEditable(false);
-
-                            panel.add(panelsText[z]);
-
-                            panel.setAutoscrolls(true);
-
-
-                           // panel.validate();
-                          //  panel.repaint();
-
-                            scroll.validate();
-                            scroll.repaint();
-                            //System.out.println(panel);
-;
+                           mainText.getHighlighter().addHighlight(lengthText[j-1], lengthText[j], textLights[j]);
                         }
 
+                        panel.add(mainText);
+                           panel.validate();
+                           panel.repaint();
 
-                        for(int z = 0; z< r[0]; z++){
-                            System.out.println("33333");
-                            //textArea[z].setOpaque ( false );
-                            //textArea[z].setSize(50,200);
-                          //  textArea[z].setLocation(10, 300);
-
-                            //panel.add(textArea[z]);
-                            panelsTextDis[z].setSize(300,200);
-                            panelsTextDis[z].setEditable(false);
-                            panel.add(panelsTextDis[z]);
-                            panel.setAutoscrolls(true);
+                        scroll.validate();
+                        scroll.repaint();
 
 
 
-                           // panel.validate();
-                           // panel.repaint();
-
-                            scroll.validate();
-                            scroll.repaint();
-                          // System.out.println(panel);
-                           // scroll.revalidate();
-                        }
-
-
-
-                    } catch (IOException | BadLocationException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                    } catch (IOException | BadLocationException ex) {
+                        ex.printStackTrace();
                     }
                 }
             }
         });
 
-        JPanel grid = new JPanel(new GridLayout(1, 2, 5, 0) );
+
+        JPanel grid = new JPanel(new GridLayout(5, 2, 5, 0) );
 
         grid.add (saveBtn);
         grid.add (openBtn);
+        grid.add(outputLabelStart);
+        grid.add(outputLabelEnd);
+        grid.add(inputEditStart);
+        grid.add(inputEditEnd);
+        grid.add(editBitton);
 
         panel.add(grid, BorderLayout.SOUTH);
 
-        frame.add(scroll);
 
-        //frame.getContentPane().add(scroll);
+        frame.getContentPane().add(scroll);
 
-        frame.setPreferredSize(new Dimension(550, 500));
+        frame.setPreferredSize(new Dimension(600, 800));
 
         frame.setTitle("File Chooser");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
