@@ -294,14 +294,10 @@ public class FileChooserEx {
 
         panel.add(grid, BorderLayout.SOUTH);
 
-
         frame.getContentPane().add(scroll);
-
         frame.setPreferredSize(new Dimension(600, 800));
-
         frame.setTitle("File Chooser");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         frame.pack();
         frame.setVisible(true);
         frame.setLocationRelativeTo(null);
