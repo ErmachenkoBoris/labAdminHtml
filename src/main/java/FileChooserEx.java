@@ -282,8 +282,6 @@ public class FileChooserEx {
                 }
             }
         });
-
-
         JPanel grid = new JPanel(new GridLayout(5, 2, 5, 0) );
 
         grid.add (saveBtn);
