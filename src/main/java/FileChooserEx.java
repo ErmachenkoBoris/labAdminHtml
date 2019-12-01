@@ -23,8 +23,31 @@ public class FileChooserEx {
     //private static int[] disStart;
     int EditStartSymbol = 0;
     int EditEndSymbol = 0;
+    final Path[] finalPath = {Paths.get("")};
+    final int[] StartEdit = {0};
+    final int[] EndEdit = {0};
+    final JTextArea editArea = new JTextArea("Edit");
+    final JButton editBtnConfirm = new JButton("Confirm Edit");
+    final String[] BeforEdit = {""};
+    final JPanel grid = new JPanel(new GridLayout(5, 2, 5, 0) );
+    final JLabel labelError = new JLabel("Error: empty data");
+    JButton editBitton = new JButton("edit");
+    final JTextField inputEditStart = new JTextField(10);//поле ввода
+    final JTextField inputEditEnd = new JTextField(10);//поле ввода
+    JLabel outputLabelStart= new JLabel("edit FROM row:");
+    JLabel outputLabelEnd= new JLabel("edit TO row:");
+    final JFrame frame = new JFrame();
+    final JFrame formEdit = new JFrame("EditPanel");
+    final JPanel panel = new JPanel(new BorderLayout());
+    final JScrollPane scroll = new JScrollPane(panel,
+            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+    final JButton saveBtn = new JButton("Save");
+    final JButton openBtn = new JButton("Open");
+
     private static int[] disStart = {1,20, 0};
     private static int[] disCount = {5,10,0};
+
     public static void main(String[] args) {
 
         Runnable r = new Runnable() {
@@ -44,40 +67,11 @@ public class FileChooserEx {
 
     public void createUI(final int[] disStart,final int[] disCount) throws IOException {
 
-        final Path[] finalPath = {Paths.get("")};
-        final int[] StartEdit = {0};
-        final int[] EndEdit = {0};
-        final JTextArea editArea = new JTextArea("Edit");
-        final JButton editBtnConfirm = new JButton("Confirm Edit");
-        final String[] BeforEdit = {""};
-        final JPanel grid = new JPanel(new GridLayout(5, 2, 5, 0) );
-        final JLabel labelError = new JLabel("Error: empty data");
 
-        JButton editBitton = new JButton("edit");
         editBitton.setActionCommand("текст который выводится нажатием на кнопку");
 
-
-        final JTextField inputEditStart = new JTextField(10);//поле ввода
-        final JTextField inputEditEnd = new JTextField(10);//поле ввода
-
-        JLabel outputLabelStart= new JLabel("edit FROM row:");
-        JLabel outputLabelEnd= new JLabel("edit TO row:");
-
-
-        final JPanel panel = new JPanel(new BorderLayout());
-
         JFrame.setDefaultLookAndFeelDecorated(true);
-        final JFrame frame = new JFrame();
-        final JFrame formEdit = new JFrame("EditPanel");
         frame.setLayout(new BorderLayout());
-
-        final JScrollPane scroll = new JScrollPane(panel,
-                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-
-
-        final JButton saveBtn = new JButton("Save");
-        final JButton openBtn = new JButton("Open");
 
 
         final JTextPane mainText = new JTextPane();
@@ -198,14 +192,6 @@ public class FileChooserEx {
                     ex.printStackTrace();
                 }
 
-//                panel.add(mainText);
-//                panel.validate();
-//                panel.repaint();
-//
-//                scroll.validate();
-//                scroll.repaint();
-
-
             }
         });
 
@@ -249,9 +235,6 @@ public class FileChooserEx {
                 formEdit.setVisible(true);
                 formEdit.setLocationRelativeTo(null);
 
-
-
-
                 EndEdit[0]++;
 
                 try {
@@ -289,10 +272,8 @@ public class FileChooserEx {
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-
             }
         });
-
 
         saveBtn.addActionListener(new ActionListener() {
 
@@ -331,7 +312,6 @@ public class FileChooserEx {
                 if (result == JFileChooser.APPROVE_OPTION) {
                     finalPath[0] = openFile.getSelectedFile().toPath();
                     //Start open File
-
                     try {
                         String contentString = "";
 
@@ -350,7 +330,6 @@ public class FileChooserEx {
                         for(int t=0; t<10;t++) {
                             textLights[t]=new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
                             lengthText[t]=0;
-
                         }
 
                         textCount++;
@@ -446,11 +425,6 @@ public class FileChooserEx {
         grid.add(inputEditEnd);
         grid.add(editBitton);
 
-        //final JPanel panelGrid = new JPanel();
-       // panelGrid.add(grid);
-        //panelGrid.setMaximumSize(new Dimension(200,100));
-
-        //frame.getContentPane().add(panelGrid);
         panel.add(grid,BorderLayout.SOUTH);
         frame.getContentPane().add(scroll);
         frame.setPreferredSize(new Dimension(600, 800));
