@@ -1,4 +1,7 @@
 
+import io.reactivex.subjects.PublishSubject;
+import models.FileString;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,7 +35,8 @@ public class FileChooserEx {
     final String[] BeforEdit = {""};
     final JPanel grid = new JPanel(new GridLayout(5, 2, 5, 0) );
     final JLabel labelError = new JLabel("Error: empty data");
-    JButton editBitton = new JButton("edit");
+    final JLabel clientNameLabel = new JLabel("client name");
+    JButton editButton = new JButton("edit");
     final JTextField inputEditStart = new JTextField(10);//поле ввода
     final JTextField inputEditEnd = new JTextField(10);//поле ввода
     JLabel outputLabelStart= new JLabel("edit FROM row:");
@@ -43,32 +48,18 @@ public class FileChooserEx {
             JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
             JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
     final JButton saveBtn = new JButton("Save");
-    final JButton openBtn = new JButton("Open");
+    final JButton openBtn = new JButton("Index.html");
 
     private static int[] disStart = {1,20, 0};
     private static int[] disCount = {5,10,0};
 
-    public static void main(String[] args) {
+    public PublishSubject<List<FileString>> fileStringSubject = PublishSubject.create();
+    private String clientName;
 
-        Runnable r = new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    new FileChooserEx().createUI(disStart, disCount);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        EventQueue.invokeLater(r);
-    }
-
-    public void createUI(final int[] disStart,final int[] disCount) throws IOException {
-
-
-        editBitton.setActionCommand("текст который выводится нажатием на кнопку");
+    public void createUI(final List<FileString> fileStrings, String clientName) throws IOException {
+        this.clientName = clientName;
+        clientNameLabel.setText("My name is " +this.clientName);
+        editButton.setActionCommand("текст который выводится нажатием на кнопку");
 
         JFrame.setDefaultLookAndFeelDecorated(true);
         frame.setLayout(new BorderLayout());
@@ -76,8 +67,6 @@ public class FileChooserEx {
 
         final JTextPane mainText = new JTextPane();
         mainText.setEditable(false);
-
-        final Highlighter highlighter =mainText.getHighlighter();
 
         panel.setAutoscrolls(true);
 
@@ -88,8 +77,7 @@ public class FileChooserEx {
 
                 String editText = editArea.getText();
                 String partOneText = mainText.getText().substring(0, EditStartSymbol);
-                String partTWoText = mainText.getText().substring(EditEndSymbol+EditStartSymbol, mainText.getText().length());
-//                mainText.setText(partOneText+editText+partTWoText);
+                String partTWoText = mainText.getText().substring(EditEndSymbol+EditStartSymbol);
 
                 formEdit.setVisible(false);
 
@@ -107,10 +95,10 @@ public class FileChooserEx {
                     String wholeContentString = "";
 
 
-                    int[] lengthText = new int[10];
-                    DefaultHighlighter.DefaultHighlightPainter[] textLights = new DefaultHighlighter.DefaultHighlightPainter[10];
+                    int[] lengthText = new int[300];
+                    DefaultHighlighter.DefaultHighlightPainter[] textLights = new DefaultHighlighter.DefaultHighlightPainter[300];
 
-                    for(int t=0; t<10;t++) {
+                    for(int t=0; t<300;t++) {
                         textLights[t]=new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
                         lengthText[t]=0;
 
@@ -195,13 +183,13 @@ public class FileChooserEx {
             }
         });
 
-        editBitton.addActionListener(new ActionListener() {      //обработчик событий кнопки
+        editButton.addActionListener(new ActionListener() {      //обработчик событий кнопки
             public void actionPerformed(ActionEvent e) {
-                int errorFlag=0;
+                int errorFlag = 0;
 
-                if(((inputEditStart.getText().length()==0) || (inputEditEnd.getText().length()==0))) {
-                    if(errorFlag!=1){
-                        errorFlag=1;
+                if (((inputEditStart.getText().length() == 0) || (inputEditEnd.getText().length() == 0))) {
+                    if (errorFlag != 1) {
+                        errorFlag = 1;
                         labelError.setForeground(Color.RED);
                         grid.add(labelError);
                         grid.revalidate();
@@ -216,7 +204,7 @@ public class FileChooserEx {
 
 
                 formEdit.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                formEdit.setSize(350,150);
+                formEdit.setSize(350, 150);
                 final JPanel panelEdit = new JPanel();
 
                 formEdit.setVisible(true);
@@ -237,41 +225,37 @@ public class FileChooserEx {
 
                 EndEdit[0]++;
 
-                try {
-                    int flag=0;
-                    int i=0;
+                int flag = 0;
+                int i = 0;
 
-                    String EditContent ="";
-                    for (String s : Files.readAllLines(finalPath[0], StandardCharsets.UTF_8)) {
-                        if(flag==0) {EditStartSymbol += s.length();}
-
-                        if(i>=StartEdit[0] && i<EndEdit[0]) {
-                            if(flag!=1){flag =1;}
-
-                            EditContent+=s;
-                            EditEndSymbol+=s.length();
-                            EditContent+='\n';
-                        } else {
-                            if(EditContent.length()!=0 && flag==1) {
-                                flag=2;
-
-                                editArea.setText(EditContent);
-
-                                BeforEdit[0] = EditContent;
-                                panelEdit.add(editBtnConfirm);
-                                panelEdit.add(editArea);
-                                panelEdit.validate();
-                                panelEdit.repaint();
-
-                                scroll.validate();
-                                scroll.repaint();
-                            }
-                        }
-                        i++;
+                String EditContent = "";
+                List<FileString> fileStringsEdit = new ArrayList<FileString>();
+                for (i = StartEdit[0]; i < EndEdit[0]; i++) {
+                    FileString tmp = fileStrings.get(i);
+                    if(tmp.getWriter()!=0){
+                        labelError.setForeground(Color.RED);
+                        grid.add(labelError);
+                        grid.revalidate();
+                        break;
                     }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                    tmp.setWriter(666);
+                    fileStringsEdit.add(tmp);
+                    String s = fileStrings.get(i).getContent();
+                    EditContent += s;
+                    EditContent += '\n';
                 }
+
+                fileStringSubject.onNext(fileStringsEdit);
+
+                editArea.setText(EditContent);
+
+                panelEdit.add(editBtnConfirm);
+                panelEdit.add(editArea);
+                panelEdit.validate();
+                panelEdit.repaint();
+
+                scroll.validate();
+                scroll.repaint();
             }
         });
 
@@ -307,91 +291,42 @@ public class FileChooserEx {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                JFileChooser openFile = new JFileChooser();
-                int result = openFile.showOpenDialog(null);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    finalPath[0] = openFile.getSelectedFile().toPath();
-                    //Start open File
                     try {
-                        String contentString = "";
-
-                        int i=0;
-                        int k=0;
-
-                        int dis=0;
 
                         int textCount = 0;
                         String wholeContentString = "";
 
+                        int[] lengthText = new int[300];
+                        DefaultHighlighter.DefaultHighlightPainter[] textLights = new DefaultHighlighter.DefaultHighlightPainter[300];
 
-                        int[] lengthText = new int[10];
-                        DefaultHighlighter.DefaultHighlightPainter[] textLights = new DefaultHighlighter.DefaultHighlightPainter[10];
-
-                        for(int t=0; t<10;t++) {
+                        for(int t=0; t<300;t++) {
                             textLights[t]=new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
                             lengthText[t]=0;
                         }
 
                         textCount++;
 
-                        for (String s : Files.readAllLines(finalPath[0], StandardCharsets.UTF_8)) {
-                            s="("+i+")"+s;
-                            if(i>=disStart[k] && i< (disStart[k]+disCount[k])) {
+                        for (int z = 0; z < fileStrings.size(); z++) {
+                            FileString fileString = fileStrings.get(z);
+                            String s = fileStrings.get(z).getContent();
+                            s="("+z+")"+s;
 
-                                if(dis!=1)dis=1;
+                            if(fileString.getWriter()!=0) {
 
-                                if(i==disStart[k] && contentString.length()!=0) {
-
-                                    wholeContentString+=contentString;
-                                    mainText.setText(wholeContentString);
-
-                                    lengthText[textCount]=wholeContentString.length();
-                                    textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
-                                    textCount++;
-
-                                    contentString="";
-                                }
-                                contentString += s;
-                                contentString += '\n';
-
+                                s = s + "  // modifying by admin #" + fileString.getWriter();
+                                textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
                             } else {
-                                if (contentString.length() != 0 && dis==1) {
-                                    dis=2;
-                                    wholeContentString+=contentString;
-                                    mainText.setText(wholeContentString);
-
-                                    lengthText[textCount]=wholeContentString.length();
-
-                                    textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
-                                    textCount++;
-
-                                    contentString = "";
-                                    k++;
-
-                                    if (i == disStart[k]) {continue;}
-                                } else {
-
-                                    contentString += s;
-                                    contentString += '\n';
-                                }
+                                textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
                             }
-                            i++;
 
-                        }
-
-
-
-                        if(contentString.length()!=0){
-                            wholeContentString+=contentString;
+                            s+='\n';
+                            wholeContentString+=s;
                             mainText.setText(wholeContentString);
-
-                            lengthText[textCount]= wholeContentString.length();
-                            textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
+                            lengthText[textCount]=wholeContentString.length();
                             textCount++;
                         }
 
                         for(int j=1; j< textCount; j++) {
-
                            mainText.getHighlighter().addHighlight(lengthText[j-1], lengthText[j], textLights[j]);
                         }
 
@@ -404,13 +339,11 @@ public class FileChooserEx {
 
 
 
-                    } catch (IOException | BadLocationException ex) {
+                    } catch ( BadLocationException ex) {
                         ex.printStackTrace();
                     }
 
-                    //END open File
                 }
-            }
         });
 
 
@@ -423,12 +356,12 @@ public class FileChooserEx {
         grid.add(outputLabelEnd);
         grid.add(inputEditStart);
         grid.add(inputEditEnd);
-        grid.add(editBitton);
+        grid.add(editButton);
 
         panel.add(grid,BorderLayout.SOUTH);
         frame.getContentPane().add(scroll);
         frame.setPreferredSize(new Dimension(600, 800));
-        frame.setTitle("File Chooser");
+        frame.setTitle("Admin - " + clientName);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);

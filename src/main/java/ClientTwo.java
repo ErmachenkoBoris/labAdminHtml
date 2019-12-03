@@ -1,14 +1,12 @@
 import models.FileString;
-import models.User;
 import services.FilesService;
-import services.UserService;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
 
-public class Client {
+public class ClientTwo {
 
     private static FileChooserEx ClientUI;
     //private static void clientName=  "default"

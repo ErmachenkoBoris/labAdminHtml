@@ -1,7 +1,9 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import models.FileString;
+import services.FilesService;
+
+import java.io.*;
 import java.net.Socket;
+import java.util.List;
 
 public class ThreadClientServer implements Runnable {
 
@@ -11,45 +13,55 @@ public class ThreadClientServer implements Runnable {
         ThreadClientServer.clientDialog = client;
     }
 
+    FilesService filesService = new FilesService();
+    List<FileString> listFiles = filesService.findAllFiles();
+    public int clientName = 1+((int)(Math.random() * 1000000));
+
+
     @Override
     public void run() {
 
         try {
             // инициируем каналы общения в сокете, для сервера
-
             // канал записи в сокет следует инициализировать сначала канал чтения для избежания блокировки выполнения программы на ожидании заголовка в сокете
             DataOutputStream out = new DataOutputStream(clientDialog.getOutputStream());
-
+            ObjectOutputStream outObject = new ObjectOutputStream(clientDialog.getOutputStream());
+            ObjectInputStream inputObject = new ObjectInputStream(clientDialog.getInputStream());
 // канал чтения из сокета
             DataInputStream in = new DataInputStream(clientDialog.getInputStream());
             System.out.println("DataInputStream created");
 
             System.out.println("DataOutputStream  created");
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // основная рабочая часть //
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // начинаем диалог с подключенным клиентом в цикле, пока сокет не
             // закрыт клиентом
             while (!clientDialog.isClosed()) {
-                System.out.println("Server reading from channel");
 
+
+                System.out.println("Server try to send listFiles to Client");
+
+               outObject.writeObject(listFiles);
+
+                out.writeUTF(String.valueOf(clientName));
                 // серверная нить ждёт в канале чтения (inputstream) получения
                 // данных клиента после получения данных считывает их
-                String entry = in.readUTF();
+                List<FileString> listFilesNew = (List<FileString>)inputObject.readObject();
+                String mode = in.readUTF();
 
                 // и выводит в консоль
-                System.out.println("READ from clientDialog message - " + entry);
+                System.out.println("READ from clientDialog message - " + mode);
 
-                // инициализация проверки условия продолжения работы с клиентом
-                // по этому сокету по кодовому слову - quit в любом регистре
-                if (entry.equalsIgnoreCase("quit")) {
+                if (mode.equalsIgnoreCase("update")) {
+                    System.out.println("!!!!!!!!");
+                    filesService.updateFileSWriter(listFilesNew, String.valueOf(clientName));
+                }
+
+                if (mode.equalsIgnoreCase("quit")) {
 
                     // если кодовое слово получено то инициализируется закрытие
                     // серверной нити
                     System.out.println("Client initialize connections suicide ...");
-                    out.writeUTF("Server reply - " + entry + " - OK");
-                    Thread.sleep(3000);
+                    out.writeUTF("Server reply - " + mode + " - OK");
                     break;
                 }
 
@@ -57,8 +69,8 @@ public class ThreadClientServer implements Runnable {
                 // отправляем эхо обратно клиенту
 
                 System.out.println("Server try writing to channel");
-                out.writeUTF("Server reply - " + entry + " - OK");
-                System.out.println("Server Wrote message to clientDialog.");
+                //out.writeUTF("Server reply - " + entry + " - OK");
+              //  System.out.println("Server Wrote message to clientDialog.");
 
                 // освобождаем буфер сетевых сообщений
                 out.flush();
@@ -67,7 +79,7 @@ public class ThreadClientServer implements Runnable {
             }
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // основная рабочая часть //
+
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // если условие выхода - верно выключаем соединения
@@ -82,10 +94,7 @@ public class ThreadClientServer implements Runnable {
             clientDialog.close();
 
             System.out.println("Closing connections & channels - DONE.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
