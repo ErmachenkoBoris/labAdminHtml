@@ -15,6 +15,7 @@ public class ThreadClientServer implements Runnable {
 
     FilesService filesService = new FilesService();
     List<FileString> listFiles = filesService.findAllFiles();
+    List<FileString> NewlistFiles = filesService.findAllFiles();
     public int clientName = 1+((int)(Math.random() * 1000000));
 
 
@@ -45,16 +46,22 @@ public class ThreadClientServer implements Runnable {
                 out.writeUTF(String.valueOf(clientName));
                 // серверная нить ждёт в канале чтения (inputstream) получения
                 // данных клиента после получения данных считывает их
+
                 List<FileString> listFilesNew = (List<FileString>)inputObject.readObject();
                 String mode = in.readUTF();
-
+                NewlistFiles = listFilesNew;
+                for(int i=0; i< listFilesNew.size(); i++) {
+                    System.out.println(listFilesNew.get(i).getContent());
+                    System.out.println(listFilesNew.get(i).getWriter());
+                }
                 // и выводит в консоль
                 System.out.println("READ from clientDialog message - " + mode);
 
-                if (mode.equalsIgnoreCase("update")) {
-                    System.out.println("!!!!!!!!");
-                    filesService.updateFileSWriter(listFilesNew, String.valueOf(clientName));
+                if (mode.equalsIgnoreCase("setWriter")) {
+                    System.out.println("setWriter))))))");
+                    filesService.updateFileSWriter(listFilesNew);
                 }
+
 
                 if (mode.equalsIgnoreCase("quit")) {
 
@@ -95,6 +102,11 @@ public class ThreadClientServer implements Runnable {
 
             System.out.println("Closing connections & channels - DONE.");
         } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Error, lost conection");
+            for(int i = 0; i < NewlistFiles.size();i++){
+                NewlistFiles.get(i).setWriter(0);
+            }
+            filesService.updateFileSWriter(NewlistFiles);
             e.printStackTrace();
         }
     }

@@ -35,20 +35,23 @@ public class Client {
             System.out.println();
             System.out.println("Client writing channel = oos & reading channel = ois initialized.");
 
+            ClientUI.fileStringSubjectSetWriter.subscribe(
+                    fileStrings -> {
+                        for(int i=0; i<fileStrings.size(); i++) {
+                            System.out.println(fileStrings.get(i).getContent());
+                        }
+                        outObject.reset();
+                        outObject.writeObject(fileStrings);
+                        oos.writeUTF("setWriter");
+                    }
+            );
 // проверяем живой ли канал и работаем если живой
             while(!socket.isOutputShutdown()){
                 listFiles= (List<FileString>) inputObject.readObject();
                 clientName =  ois.readUTF();
                 ClientUI.createUI(listFiles, clientName);
-               // String client = "666";
-               // client = ois.readUTF();
-               // String finalClient = client;
-                ClientUI.fileStringSubject.subscribe(
-                        fileStrings -> {
-                            outObject.writeObject(fileStrings);
-                            oos.writeUTF("update");
-                        }
-                );
+
+
 // ждём консоли клиента на предмет появления в ней данных
                 if(br.ready()){
 

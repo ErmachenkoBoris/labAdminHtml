@@ -41,7 +41,7 @@ public class ClientTwo {
                // String client = "666";
                // client = ois.readUTF();
                // String finalClient = client;
-                ClientUI.fileStringSubject.subscribe(
+                ClientUI.fileStringSubjectSetWriter.subscribe(
                         fileStrings -> {
                             outObject.writeObject(fileStrings);
                             oos.writeUTF("update");

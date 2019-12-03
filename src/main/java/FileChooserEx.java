@@ -25,6 +25,7 @@ import javax.swing.text.Highlighter;
 
 public class FileChooserEx {
     //private static int[] disStart;
+    int countEditedRows = 0;
     int EditStartSymbol = 0;
     int EditEndSymbol = 0;
     final Path[] finalPath = {Paths.get("")};
@@ -53,7 +54,10 @@ public class FileChooserEx {
     private static int[] disStart = {1,20, 0};
     private static int[] disCount = {5,10,0};
 
-    public PublishSubject<List<FileString>> fileStringSubject = PublishSubject.create();
+    public PublishSubject<List<FileString>> fileStringSubjectSetWriter = PublishSubject.create();
+    public PublishSubject<List<FileString>> fileStringSubjectUpdateFileSameRows = PublishSubject.create();
+    public PublishSubject<List<FileString>> fileStringSubjectUpdateFileAddRows = PublishSubject.create();
+    public PublishSubject<List<FileString>> fileStringSubjectUpdateFileDeleteRows = PublishSubject.create();
     private String clientName;
 
     public void createUI(final List<FileString> fileStrings, String clientName) throws IOException {
@@ -73,111 +77,32 @@ public class FileChooserEx {
 
 
         editBtnConfirm.addActionListener(new ActionListener() {        //обработчик событий кнопки
-            public void actionPerformed(ActionEvent e){
+            public void actionPerformed(ActionEvent e) {
 
                 String editText = editArea.getText();
-                String partOneText = mainText.getText().substring(0, EditStartSymbol);
-                String partTWoText = mainText.getText().substring(EditEndSymbol+EditStartSymbol);
 
-                formEdit.setVisible(false);
-
-                txtFile((partOneText+editText+partTWoText).replaceAll("\\(\\d{1,}\\)", ""), finalPath[0]);
-
-                try {
-                    String contentString = "";
-
-                    int i=0;
-                    int k=0;
-
-                    int dis=0;
-
-                    int textCount = 0;
-                    String wholeContentString = "";
-
-
-                    int[] lengthText = new int[300];
-                    DefaultHighlighter.DefaultHighlightPainter[] textLights = new DefaultHighlighter.DefaultHighlightPainter[300];
-
-                    for(int t=0; t<300;t++) {
-                        textLights[t]=new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
-                        lengthText[t]=0;
-
+                String[] newContent = editText.split("\n"); //парсим обратно
+                System.out.println(newContent.length);
+                System.out.println(countEditedRows);
+                if (newContent.length-1 == countEditedRows) {
+                    List<FileString> fileStringsEdit = new ArrayList<FileString>();
+                    for(int h = StartEdit[0]; h<StartEdit[0]+newContent.length; h ++) {
+                        FileString tmp = fileStrings.get(h);
+                        tmp.setContent(newContent[h-StartEdit[0]]);
+                        tmp.setWriter(0);
+                        fileStringsEdit.add(tmp);
+                        System.out.println(fileStringsEdit.get(h-StartEdit[0]).getWriter());
+                        System.out.println(fileStringsEdit.get(h-StartEdit[0]).getContent());
                     }
+                    fileStringSubjectSetWriter.onNext(fileStringsEdit);
+                }
 
-                    textCount++;
+                if (newContent.length > countEditedRows) {
 
-                    for (String s : Files.readAllLines(finalPath[0], StandardCharsets.UTF_8)) {
-                        s="("+i+")"+s;
-                        if(i>=disStart[k] && i< (disStart[k]+disCount[k])) {
+                }
 
-                            if(dis!=1)dis=1;
+                if (newContent.length < countEditedRows) {
 
-                            if(i==disStart[k] && contentString.length()!=0) {
-
-                                wholeContentString+=contentString;
-                                mainText.setText(wholeContentString);
-
-                                lengthText[textCount]=wholeContentString.length();
-                                textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
-                                textCount++;
-
-                                contentString="";
-                            }
-                            contentString += s;
-                            contentString += '\n';
-
-                        } else {
-                            if (contentString.length() != 0 && dis==1) {
-                                dis=2;
-                                wholeContentString+=contentString;
-                                mainText.setText(wholeContentString);
-
-                                lengthText[textCount]=wholeContentString.length();
-
-                                textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
-                                textCount++;
-
-                                contentString = "";
-                                k++;
-
-                                if (i == disStart[k]) {continue;}
-                            } else {
-
-                                contentString += s;
-                                contentString += '\n';
-                            }
-                        }
-                        i++;
-
-                    }
-
-
-
-                    if(contentString.length()!=0){
-                        wholeContentString+=contentString;
-                        mainText.setText(wholeContentString);
-
-                        lengthText[textCount]=wholeContentString.length();
-                        textLights[textCount]= new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
-                        textCount++;
-                    }
-
-                    for(int j=1; j< textCount; j++) {
-
-                        mainText.getHighlighter().addHighlight(lengthText[j-1], lengthText[j], textLights[j]);
-                    }
-
-                    panel.add(mainText);
-                    panel.validate();
-                    panel.repaint();
-
-                    scroll.validate();
-                    scroll.repaint();
-
-
-
-                } catch (IOException | BadLocationException ex) {
-                    ex.printStackTrace();
                 }
 
             }
@@ -202,6 +127,7 @@ public class FileChooserEx {
                 StartEdit[0] = Integer.parseInt(inputEditStart.getText()); //ввод
                 EndEdit[0] = Integer.parseInt(inputEditEnd.getText()); //ввод
 
+                countEditedRows= EndEdit[0]-StartEdit[0];
 
                 formEdit.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 formEdit.setSize(350, 150);
@@ -238,14 +164,14 @@ public class FileChooserEx {
                         grid.revalidate();
                         break;
                     }
-                    tmp.setWriter(666);
+                    tmp.setWriter(Integer.parseInt(clientName));
                     fileStringsEdit.add(tmp);
-                    String s = fileStrings.get(i).getContent();
+                    String s =(fileStrings.get(i)).getContent();
                     EditContent += s;
                     EditContent += '\n';
                 }
 
-                fileStringSubject.onNext(fileStringsEdit);
+                fileStringSubjectSetWriter.onNext(fileStringsEdit);
 
                 editArea.setText(EditContent);
 

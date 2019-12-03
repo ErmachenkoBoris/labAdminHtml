@@ -29,12 +29,12 @@ public class FilesService {
         filesDao.update(fileString);
     }
 
-    public void updateFileSWriter(List<FileString> fileStrings, String writer) {
-        int writerInt = Integer.parseInt(writer);
+    public void updateFileSWriter(List<FileString> fileStrings) {
+        //int writerInt = Integer.parseInt(writer);
         for(int i = 0 ;i < fileStrings.size(); i++) {
-            FileString tmp = fileStrings.get(i);
-            tmp.setWriter(writerInt);
-            filesDao.update(tmp);
+            //FileString tmp = fileStrings.get(i);
+          //  tmp.setWriter(writerInt);
+            filesDao.update(fileStrings.get(i));
         }
     }
 
