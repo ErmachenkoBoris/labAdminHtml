@@ -1,3 +1,4 @@
+import Interceptors.AuditInterceptor;
 import models.FileString;
 import services.FilesService;
 
@@ -10,6 +11,8 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,6 +24,11 @@ public class MainServer {
      * @param args
      */
     public static void main(String[] args) throws IOException {
+
+        List<ThreadClientServer> threadClientServers = new ArrayList<ThreadClientServer> ();
+        int Size = 0;
+
+        AuditInterceptor Intercapt = new AuditInterceptor();
 
         try(FileReader reader = new FileReader("/home/boris/JAVA1/javaLABGIT/labAdminHtml/src/main/java/index.html"))
         {
@@ -71,7 +79,20 @@ public class MainServer {
                 // в Runnable(при необходимости можно создать Callable)
                 // монопоточную нить = сервер - MonoThreadClientHandler и тот
                 // продолжает общение от лица сервера
-                executeIt.execute(new ThreadClientServer(client));
+
+                ThreadClientServer threadCS = new ThreadClientServer(client);
+                threadClientServers.add(threadCS);
+                System.out.println("---------------s-asdasd-a------------------");
+                threadClientServers.get(Size).updateRequire.subscribe(aBoolean -> {
+                    for(int i=0; i< threadClientServers.size(); i++) {
+                        System.out.println("MAIN SERVER ON NEXT");
+                        ThreadClientServer tmp = threadClientServers.get(i);
+                        tmp.updateRequireBase.onNext(true);
+                    }
+                });
+                Size++;
+
+                executeIt.execute(threadCS);
                 System.out.print("Connection accepted.");
             }
 

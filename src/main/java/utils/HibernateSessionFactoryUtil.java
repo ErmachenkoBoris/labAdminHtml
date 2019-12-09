@@ -1,5 +1,6 @@
 package utils;
 
+import Interceptors.AuditInterceptor;
 import models.FileString;
 import models.User;
 import org.hibernate.SessionFactory;
@@ -17,6 +18,7 @@ public class HibernateSessionFactoryUtil {
                 Configuration configuration = new Configuration().configure();
                 configuration.addAnnotatedClass(User.class);
                 configuration.addAnnotatedClass(FileString.class);
+                configuration.setInterceptor( new AuditInterceptor() );
                 StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
                 sessionFactory = configuration.buildSessionFactory(builder.build());
 

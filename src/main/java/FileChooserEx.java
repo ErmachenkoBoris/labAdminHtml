@@ -25,6 +25,7 @@ import javax.swing.text.Highlighter;
 
 public class FileChooserEx {
     //private static int[] disStart;
+    int fileIndex=0;
     int countEditedRows = 0;
     int EditStartSymbol = 0;
     int EditEndSymbol = 0;
@@ -35,7 +36,7 @@ public class FileChooserEx {
     final JButton editBtnConfirm = new JButton("Confirm Edit");
     final String[] BeforEdit = {""};
     final JPanel grid = new JPanel(new GridLayout(5, 2, 5, 0) );
-    final JLabel labelError = new JLabel("Error: empty data");
+    final JLabel labelError = new JLabel("Error: error");
     final JLabel clientNameLabel = new JLabel("client name");
     JButton editButton = new JButton("edit");
     final JTextField inputEditStart = new JTextField(10);//поле ввода
@@ -50,17 +51,84 @@ public class FileChooserEx {
             JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
     final JButton saveBtn = new JButton("Save");
     final JButton openBtn = new JButton("Index.html");
+    int attemp = 0;
+    final JTextPane mainText = new JTextPane();
 
-    private static int[] disStart = {1,20, 0};
-    private static int[] disCount = {5,10,0};
 
     public PublishSubject<List<FileString>> fileStringSubjectSetWriter = PublishSubject.create();
-    public PublishSubject<List<FileString>> fileStringSubjectUpdateFileSameRows = PublishSubject.create();
-    public PublishSubject<List<FileString>> fileStringSubjectUpdateFileAddRows = PublishSubject.create();
-    public PublishSubject<List<FileString>> fileStringSubjectUpdateFileDeleteRows = PublishSubject.create();
+
+    public PublishSubject<List<FileString>> fileStringSubjectUpdateOldRows = PublishSubject.create();
+
     private String clientName;
+    private List<FileString> fileStrings;
+
+    public void update(List<FileString> fileStrings) throws IOException {
+        this.fileStrings = fileStrings;
+
+        //this.createUI(fileStrings, clientName);
+
+        System.out.println("try to update");
+
+        try {
+
+            if (fileStrings.size() == 0) {
+            mainText.setText("");
+            } else {
+
+
+            int textCount = 0;
+            String wholeContentString = "";
+
+            int[] lengthText = new int[300];
+            DefaultHighlighter.DefaultHighlightPainter[] textLights = new DefaultHighlighter.DefaultHighlightPainter[300];
+
+            for (int t = 0; t < 300; t++) {
+                textLights[t] = new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
+                lengthText[t] = 0;
+            }
+
+            textCount++;
+
+            for (int z = 0; z < fileStrings.size(); z++) {
+                FileString fileString = fileStrings.get(z);
+                String s = fileStrings.get(z).getContent();
+                s = "(" + z + ")" + s;
+
+                if (fileString.getWriter() != 0) {
+
+                    s = s + "  // modifying by admin #" + fileString.getWriter();
+                    textLights[textCount] = new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
+                } else {
+                    textLights[textCount] = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
+                }
+
+                s += '\n';
+                wholeContentString += s;
+                mainText.setText(wholeContentString);
+                lengthText[textCount] = wholeContentString.length();
+                textCount++;
+            }
+
+            for (int j = 1; j < textCount; j++) {
+                mainText.getHighlighter().addHighlight(lengthText[j - 1], lengthText[j], textLights[j]);
+            }
+        }
+            panel.add(mainText);
+            panel.validate();
+            panel.repaint();
+
+            scroll.validate();
+            scroll.repaint();
+
+
+
+        } catch ( BadLocationException ex) {
+            ex.printStackTrace();
+        }
+    }
 
     public void createUI(final List<FileString> fileStrings, String clientName) throws IOException {
+        this.fileStrings = fileStrings;
         this.clientName = clientName;
         clientNameLabel.setText("My name is " +this.clientName);
         editButton.setActionCommand("текст который выводится нажатием на кнопку");
@@ -69,7 +137,7 @@ public class FileChooserEx {
         frame.setLayout(new BorderLayout());
 
 
-        final JTextPane mainText = new JTextPane();
+
         mainText.setEditable(false);
 
         panel.setAutoscrolls(true);
@@ -77,38 +145,35 @@ public class FileChooserEx {
 
 
         editBtnConfirm.addActionListener(new ActionListener() {        //обработчик событий кнопки
+
+            @Override
             public void actionPerformed(ActionEvent e) {
+                System.out.println("actionPerformed");
 
                 String editText = editArea.getText();
 
                 String[] newContent = editText.split("\n"); //парсим обратно
                 System.out.println(newContent.length);
                 System.out.println(countEditedRows);
-                if (newContent.length-1 == countEditedRows) {
-                    List<FileString> fileStringsEdit = new ArrayList<FileString>();
-                    for(int h = StartEdit[0]; h<StartEdit[0]+newContent.length; h ++) {
-                        FileString tmp = fileStrings.get(h);
-                        tmp.setContent(newContent[h-StartEdit[0]]);
-                        tmp.setWriter(0);
+
+                List<FileString> fileStringsEdit = new ArrayList<FileString>();
+
+                for(int h = StartEdit[0]; h<StartEdit[0]+newContent.length; h ++) {
+                        FileString tmp = new FileString(newContent[h-StartEdit[0]], fileIndex, h, 0);
                         fileStringsEdit.add(tmp);
-                        System.out.println(fileStringsEdit.get(h-StartEdit[0]).getWriter());
-                        System.out.println(fileStringsEdit.get(h-StartEdit[0]).getContent());
                     }
-                    fileStringSubjectSetWriter.onNext(fileStringsEdit);
-                }
 
-                if (newContent.length > countEditedRows) {
+                if(attemp == 0 )fileStringSubjectUpdateOldRows.onNext(fileStringsEdit);
+                attemp++;
 
-                }
-
-                if (newContent.length < countEditedRows) {
-
-                }
-
+                formEdit.removeAll();
+                formEdit.setVisible(false);
             }
         });
 
         editButton.addActionListener(new ActionListener() {      //обработчик событий кнопки
+
+            @Override
             public void actionPerformed(ActionEvent e) {
                 int errorFlag = 0;
 
@@ -171,6 +236,7 @@ public class FileChooserEx {
                     EditContent += '\n';
                 }
 
+                ;
                 fileStringSubjectSetWriter.onNext(fileStringsEdit);
 
                 editArea.setText(EditContent);

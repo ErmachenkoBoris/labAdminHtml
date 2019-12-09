@@ -1,8 +1,11 @@
+import io.reactivex.subjects.PublishSubject;
 import models.FileString;
 import services.FilesService;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ThreadClientServer implements Runnable {
@@ -18,6 +21,8 @@ public class ThreadClientServer implements Runnable {
     List<FileString> NewlistFiles = filesService.findAllFiles();
     public int clientName = 1+((int)(Math.random() * 1000000));
 
+    public PublishSubject<Boolean> updateRequire = PublishSubject.create();
+    public PublishSubject<Boolean> updateRequireBase = PublishSubject.create();
 
     @Override
     public void run() {
@@ -36,7 +41,24 @@ public class ThreadClientServer implements Runnable {
 
             // начинаем диалог с подключенным клиентом в цикле, пока сокет не
             // закрыт клиентом
+
+            updateRequireBase.subscribe(aBoolean -> {
+                if(aBoolean){
+
+                    System.out.println("UPD UPD UPD");
+
+                    listFiles = filesService.findAllFiles();
+
+                    outObject.writeObject(listFiles);
+                    out.writeUTF("update");
+
+                }
+            });
+
+
             while (!clientDialog.isClosed()) {
+
+
 
 
                 System.out.println("Server try to send listFiles to Client");
@@ -49,17 +71,78 @@ public class ThreadClientServer implements Runnable {
 
                 List<FileString> listFilesNew = (List<FileString>)inputObject.readObject();
                 String mode = in.readUTF();
+
+
                 NewlistFiles = listFilesNew;
+                System.out.println(listFilesNew.size());
                 for(int i=0; i< listFilesNew.size(); i++) {
+
                     System.out.println(listFilesNew.get(i).getContent());
                     System.out.println(listFilesNew.get(i).getWriter());
                 }
                 // и выводит в консоль
                 System.out.println("READ from clientDialog message - " + mode);
 
-                if (mode.equalsIgnoreCase("setWriter")) {
-                    System.out.println("setWriter))))))");
+                if (mode.equalsIgnoreCase("setWriterOrUpdate")) {
                     filesService.updateFileSWriter(listFilesNew);
+                    updateRequire.onNext(true);
+                }
+
+
+                if(mode.equalsIgnoreCase("NewRows")) {
+
+
+                    System.out.println("OKOKOKOK");
+                    System.out.println(listFilesNew.size());
+
+                    List<FileString> actualList = filesService.findAllFiles();
+
+                    List<FileString> actualListClient = new ArrayList<FileString>();
+
+                    for (int k = 0; k < actualList.size(); k++) {
+                        if (actualList.get(k).getWriter() == clientName) {//то, что он сейчас редактирует по базе
+
+                            actualListClient.add(actualList.get(k));
+                        }
+                    }
+
+                    if (listFilesNew.size() == 0) {
+                        for (int k = 0; k < actualListClient.size(); k++) {
+                            filesService.deleteFile(actualListClient.get(k));
+                        }
+
+                    } else {
+                        int delta = listFilesNew.size() - actualListClient.size();
+                        System.out.println("delta");
+                        System.out.println(delta);
+                        int sizeClientEdit = actualListClient.size();
+
+                        int z = 0;
+                        int startIndex = listFilesNew.get(0).getPosition();
+
+                        System.out.println("StartIndex");
+                        System.out.println(startIndex);
+                        for (z = startIndex; z < startIndex + sizeClientEdit; z++) {
+
+                            FileString tmp = actualList.get(z);
+                            filesService.deleteFile(tmp);
+                        }
+
+                        for (int k = z; k < actualList.size(); k++) {
+
+                            FileString tmp = actualList.get(k);
+                            tmp.setPosition(tmp.getPosition() + delta);
+                            filesService.updateFile(tmp);
+
+                        }
+
+                        for (int k = 0; k < listFilesNew.size(); k++) {
+
+                            filesService.saveFile(listFilesNew.get(k));
+                        }
+                    }
+
+                    updateRequire.onNext(true); // ГОВОРИМ,ЧТО НУЖНО ОБНОВИТЬСЯ
                 }
 
 
@@ -103,8 +186,11 @@ public class ThreadClientServer implements Runnable {
             System.out.println("Closing connections & channels - DONE.");
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Error, lost conection");
-            for(int i = 0; i < NewlistFiles.size();i++){
-                NewlistFiles.get(i).setWriter(0);
+            NewlistFiles = filesService.findAllFiles();
+            for(int i = 0; i < NewlistFiles.size();i++) {
+                if(NewlistFiles.get(i).getWriter()==clientName) {
+                    NewlistFiles.get(i).setWriter(0);
+                }
             }
             filesService.updateFileSWriter(NewlistFiles);
             e.printStackTrace();

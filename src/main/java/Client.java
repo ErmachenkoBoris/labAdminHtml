@@ -11,15 +11,15 @@ import java.util.List;
 public class Client {
 
     private static FileChooserEx ClientUI;
-    //private static void clientName=  "default"
 
     public static String clientName = "default";
-
+    public static String infoFromServer = "default";
     public static void main(String[] args) throws InterruptedException, IOException {
             ClientUI=new FileChooserEx();
+
         FilesService filesService = new FilesService();
         List<FileString> listFiles;
-          //  ClientUI.createUI(disStart, disCount);
+
 // запускаем подключение сокета по известным координатам и нициализируем приём сообщений с консоли клиента
         try(Socket socket = new Socket("localhost", 3345);
             BufferedReader br =new BufferedReader(new InputStreamReader(System.in));
@@ -35,29 +35,51 @@ public class Client {
             System.out.println();
             System.out.println("Client writing channel = oos & reading channel = ois initialized.");
 
-            ClientUI.fileStringSubjectSetWriter.subscribe(
+            ClientUI.fileStringSubjectUpdateOldRows.subscribe(
                     fileStrings -> {
-                        for(int i=0; i<fileStrings.size(); i++) {
-                            System.out.println(fileStrings.get(i).getContent());
-                        }
+                        System.out.println("NewRows");
+                        System.out.println(fileStrings.size());
                         outObject.reset();
                         outObject.writeObject(fileStrings);
-                        oos.writeUTF("setWriter");
+                        oos.writeUTF("NewRows");
                     }
             );
+
+            ClientUI.fileStringSubjectSetWriter.subscribe(
+                    fileStrings -> {
+                        outObject.reset();
+                        outObject.writeObject(fileStrings);
+                        oos.writeUTF("setWriterOrUpdate");
+
+                        // String commandЕ =  ois.readUTF();
+                        //  System.out.println( commandЕ );
+
+                    }
+            );
+
 // проверяем живой ли канал и работаем если живой
             while(!socket.isOutputShutdown()){
                 listFiles= (List<FileString>) inputObject.readObject();
-                clientName =  ois.readUTF();
-                ClientUI.createUI(listFiles, clientName);
+                infoFromServer =  ois.readUTF();
 
+                if(infoFromServer.equals("update")) {
+
+                    System.out.println( "UPDATE" );
+                    ClientUI.update(listFiles);
+                } else {
+                    clientName = infoFromServer;
+                    System.out.println( clientName );
+
+                    ClientUI.createUI(listFiles, clientName);
+                }
 
 // ждём консоли клиента на предмет появления в ней данных
                 if(br.ready()){
 
+
 // данные появились - работаем
                     System.out.println("Client start writing in channel...");
-                    Thread.sleep(1000);
+                   // Thread.sleep(1000);
                     String clientCommand = br.readLine();
 
 // пишем данные с консоли в канал сокета для сервера
