@@ -30,6 +30,8 @@ public class FileChooserEx {
     final int widthFrame = 600;
     final int heightFrame = 800;
     final int fileIndex=0;
+    final int widthEditFrame = 600;
+    final int heightEditFrame = 300;
     final int countEditedRows = 0;
     final int[] StartEdit = {0};
     final int[] EndEdit = {0};
@@ -99,7 +101,9 @@ public class FileChooserEx {
                         clientName,
                         editArea,
                         editBtnConfirm,
-                        scroll);
+                        scroll,
+                        widthEditFrame,
+                        heightEditFrame);
                 fileStringSubjectSetWriter.onNext(fileStringsEdit);
 
 

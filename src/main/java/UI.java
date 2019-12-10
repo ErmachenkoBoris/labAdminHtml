@@ -46,12 +46,6 @@ public class UI {
 
     }
 
-    void editBtnConfirmActionPerformed() {
-
-
-
-    }
-
 
     public List<FileString> editBtnConfirmActionPerformed(JTextArea editArea, int startEdit, JFrame formEdit, int fileIndex) {
         String editText = editArea.getText();
@@ -88,7 +82,7 @@ public class UI {
     }
 
 
-    public List<FileString> editButtonActionPerfomed(JTextField inputEditStart, JTextField inputEditEnd, JLabel labelError, JPanel grid, int startEdit, int endEdit, int countEditedRows, JFrame formEdit, List<FileString> fileStrings, String clientName, JTextArea editArea, JButton editBtnConfirm, JScrollPane scroll) {
+    public List<FileString> editButtonActionPerfomed(JTextField inputEditStart, JTextField inputEditEnd, JLabel labelError, JPanel grid, int startEdit, int endEdit, int countEditedRows, JFrame formEdit, List<FileString> fileStrings, String clientName, JTextArea editArea, JButton editBtnConfirm, JScrollPane scroll, int widthEditFrame, int heightEditFrame) {
         List<FileString> fileStringsEdit = new ArrayList<>();
         int errorFlag = 0;
 
@@ -110,7 +104,6 @@ public class UI {
         countEditedRows= endEdit-startEdit;
 
         formEdit.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        formEdit.setSize(350, 150);
         final JPanel panelEdit = new JPanel();
 
         formEdit.setVisible(true);
@@ -122,7 +115,7 @@ public class UI {
                 JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
         formEdit.getContentPane().add(scrollEdit);
-        formEdit.setPreferredSize(new Dimension(600, 800));
+        formEdit.setPreferredSize(new Dimension(widthEditFrame, heightEditFrame));
         formEdit.setTitle("File Chooser");
         formEdit.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         formEdit.pack();
