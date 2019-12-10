@@ -2,10 +2,7 @@ import Interceptors.AuditInterceptor;
 import models.FileString;
 import services.FilesService;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -18,24 +15,29 @@ import java.util.concurrent.Executors;
 
 public class MainServer {
 
+    //final String pathToFile = "\"/home/boris/JAVA1/javaLABGIT/labAdminHtml/src/main/java/index.html\"";
+
     static ExecutorService executeIt = Executors.newFixedThreadPool(2);
 
     /**
      * @param args
      */
     public static void main(String[] args) throws IOException {
+        final String pathToFile = "/home/boris/JAVA1/javaLABGIT/labAdminHtml/src/main/java/index.html";
+
+        FilesService fileservice = new FilesService();
 
         List<ThreadClientServer> threadClientServers = new ArrayList<ThreadClientServer> ();
         int Size = 0;
 
         AuditInterceptor Intercapt = new AuditInterceptor();
 
-        try(FileReader reader = new FileReader("/home/boris/JAVA1/javaLABGIT/labAdminHtml/src/main/java/index.html"))
+        try(FileReader reader = new FileReader(pathToFile))
         {
-            FilesService fileservice = new FilesService();
+
             int i = 0;
-            //fileservice.deletAll();
-            for (String s : Files.readAllLines(Paths.get("/home/boris/JAVA1/javaLABGIT/labAdminHtml/src/main/java/index.html"), StandardCharsets.UTF_8)) {
+
+            for (String s : Files.readAllLines(Paths.get(pathToFile), StandardCharsets.UTF_8)) {
                 FileString fileString = new FileString(s,0,i++,0);
                 fileservice.saveFile(fileString);
                 fileservice.updateFile(fileString);
@@ -82,13 +84,16 @@ public class MainServer {
 
                 ThreadClientServer threadCS = new ThreadClientServer(client);
                 threadClientServers.add(threadCS);
-                System.out.println("---------------s-asdasd-a------------------");
+                System.out.println("-------------------------------------");
                 threadClientServers.get(Size).updateRequire.subscribe(aBoolean -> {
                     for(int i=0; i< threadClientServers.size(); i++) {
                         System.out.println("MAIN SERVER ON NEXT");
                         ThreadClientServer tmp = threadClientServers.get(i);
                         tmp.updateRequireBase.onNext(true);
                     }
+                });
+                threadClientServers.get(Size).saveFile.subscribe(aBoolean->{
+                    if(aBoolean)saveFile(fileservice);
                 });
                 Size++;
 
@@ -101,5 +106,19 @@ public class MainServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void saveFile(FilesService fileservice) throws IOException {
+        List<FileString> actualList = fileservice.findAllFiles();
+        String text = "";
+        System.out.println("TRY TO WRITE");
+        for(int i=0; i<actualList.size(); i++) {
+            text += actualList.get(i).getContent();
+            text +="\n";
+        }
+            FileWriter fw = new FileWriter("/home/boris/JAVA1/javaLABGIT/labAdminHtml/src/main/java/index.html");
+            fw.write(text);
+            fw.close();
+
     }
 }

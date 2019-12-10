@@ -23,6 +23,7 @@ public class ThreadClientServer implements Runnable {
 
     public PublishSubject<Boolean> updateRequire = PublishSubject.create();
     public PublishSubject<Boolean> updateRequireBase = PublishSubject.create();
+    public PublishSubject<Boolean> saveFile = PublishSubject.create();
 
     @Override
     public void run() {
@@ -72,16 +73,21 @@ public class ThreadClientServer implements Runnable {
                 List<FileString> listFilesNew = (List<FileString>)inputObject.readObject();
                 String mode = in.readUTF();
 
+                if(listFilesNew.size()>0) {
+                    NewlistFiles = listFilesNew;
+                    System.out.println(listFilesNew.size());
+                    for (int i = 0; i < listFilesNew.size(); i++) {
 
-                NewlistFiles = listFilesNew;
-                System.out.println(listFilesNew.size());
-                for(int i=0; i< listFilesNew.size(); i++) {
-
-                    System.out.println(listFilesNew.get(i).getContent());
-                    System.out.println(listFilesNew.get(i).getWriter());
+                        System.out.println(listFilesNew.get(i).getContent());
+                        System.out.println(listFilesNew.get(i).getWriter());
+                    }
+                    // и выводит в консоль
+                    System.out.println("READ from clientDialog message - " + mode);
                 }
-                // и выводит в консоль
-                System.out.println("READ from clientDialog message - " + mode);
+
+                if (mode.equalsIgnoreCase("save")) {
+                    saveFile.onNext(true);
+                }
 
                 if (mode.equalsIgnoreCase("setWriterOrUpdate")) {
                     filesService.updateFileSWriter(listFilesNew);

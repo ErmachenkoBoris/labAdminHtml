@@ -59,6 +59,7 @@ public class FileChooserEx {
 
     public PublishSubject<List<FileString>> fileStringSubjectSetWriter = PublishSubject.create();
     public PublishSubject<List<FileString>> fileStringSubjectUpdateOldRows = PublishSubject.create();
+    public PublishSubject<Boolean> fileSaveSubject = PublishSubject.create();
     private String clientName;
     private List<FileString> fileStrings;
     public UI uiService = new UI();
@@ -76,6 +77,7 @@ public class FileChooserEx {
         this.fileStrings = fileStrings;
         this.clientName = clientName;
         uiService.init(clientNameLabel, clientName, frame, mainText, panel, editButton);
+
         editBtnConfirm.addActionListener(new ActionListener() {        //обработчик событий кнопки
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -88,6 +90,8 @@ public class FileChooserEx {
         editButton.addActionListener(new ActionListener() {      //обработчик событий кнопки
             @Override
             public void actionPerformed(ActionEvent e) {
+                StartEdit[0] = uiService.editGetStartIndex(inputEditStart);
+                EndEdit[0] = uiService.editGetLastIndex(inputEditEnd);
                 List<FileString> fileStringsEdit = uiService.editButtonActionPerfomed(
                         inputEditStart,
                         inputEditEnd,
@@ -113,7 +117,7 @@ public class FileChooserEx {
         saveBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                uiService.saveBtnActionPerfomed(mainText);
+                fileSaveSubject.onNext(true);
             }
         });
 

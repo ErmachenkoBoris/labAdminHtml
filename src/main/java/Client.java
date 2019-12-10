@@ -6,6 +6,7 @@ import services.UserService;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Client {
@@ -37,8 +38,7 @@ public class Client {
 
             ClientUI.fileStringSubjectUpdateOldRows.subscribe(
                     fileStrings -> {
-                        System.out.println("NewRows");
-                        System.out.println(fileStrings.size());
+
                         outObject.reset();
                         outObject.writeObject(fileStrings);
                         oos.writeUTF("NewRows");
@@ -50,10 +50,15 @@ public class Client {
                         outObject.reset();
                         outObject.writeObject(fileStrings);
                         oos.writeUTF("setWriterOrUpdate");
+                    }
+            );
 
-                        // String commandЕ =  ois.readUTF();
-                        //  System.out.println( commandЕ );
-
+            ClientUI.fileSaveSubject.subscribe(
+                    fileStrings -> {
+                        List<FileString> fileStringsTmp = new ArrayList<FileString>();
+                        outObject.reset();
+                        outObject.writeObject(fileStringsTmp);
+                        oos.writeUTF("save");
                     }
             );
 

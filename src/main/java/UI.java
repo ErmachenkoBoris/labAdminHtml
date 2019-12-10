@@ -12,36 +12,6 @@ import java.util.List;
 
 public class UI {
 
-//    int fileIndex=0;
-//    int countEditedRows = 0;
-//    int EditStartSymbol = 0;
-//    int EditEndSymbol = 0;
-//    final Path[] finalPath = {Paths.get("")};
-//    final int[] StartEdit = {0};
-//    final int[] EndEdit = {0};
-//    final JTextArea editArea = new JTextArea("Edit");
-//    final JButton editBtnConfirm = new JButton("Confirm Edit");
-//    final String[] BeforEdit = {""};
-//    final JPanel grid = new JPanel(new GridLayout(5, 2, 5, 0) );
-//    final JLabel labelError = new JLabel("Error: error");
-//    final JLabel clientNameLabel = new JLabel("client name");
-//    JButton editButton = new JButton("edit");
-//    final JTextField inputEditStart = new JTextField(10);//поле ввода
-//    final JTextField inputEditEnd = new JTextField(10);//поле ввода
-//    JLabel outputLabelStart= new JLabel("edit FROM row:");
-//    JLabel outputLabelEnd= new JLabel("edit TO row:");
-//    final JFrame frame = new JFrame();
-//    final JFrame formEdit = new JFrame("EditPanel");
-//    final JPanel panel = new JPanel(new BorderLayout());
-//    final JScrollPane scroll = new JScrollPane(panel,
-//            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-//            JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-//    final JButton saveBtn = new JButton("Save");
-//    final JButton openBtn = new JButton("Index.html");
-//    int attemp = 0;
-//    final JTextPane mainText = new JTextPane();
-
-
     public UI(){
 
     }
@@ -53,6 +23,9 @@ public class UI {
         String[] newContent = editText.split("\n"); //парсим обратно
 
         java.util.List<FileString> fileStringsEdit = new ArrayList<FileString>();
+
+        System.out.println("startEdit");
+        System.out.println(startEdit);
 
         for(int h = startEdit; h<startEdit+newContent.length; h ++) {
             FileString tmp = new FileString(newContent[h-startEdit], fileIndex, h, 0);
@@ -293,5 +266,13 @@ public class UI {
                 e.printStackTrace();
             }
         }
+    }
+
+    public int editGetStartIndex(JTextField inputEditStart) {
+        return Integer.parseInt(inputEditStart.getText());
+    }
+
+    public int editGetLastIndex(JTextField inputEditEnd) {
+        return Integer.parseInt(inputEditEnd.getText());
     }
 }
