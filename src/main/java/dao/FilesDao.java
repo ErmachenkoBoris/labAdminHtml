@@ -2,15 +2,44 @@ package dao;
 
 import models.FileString;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 import utils.HibernateSessionFactoryUtil;
+
+
 import java.util.List;
 
+
+
 public class FilesDao {
+
 
     public FileString findById(int id) {
         return HibernateSessionFactoryUtil.getSessionFactory().openSession().get(FileString.class, id);
     }
+
+    public List<FileString> findAllByWtiter(int writerIndex) {
+
+        Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession();
+
+        Query query = session.createQuery("FROM FileString WHERE writer=:writerIndex");
+        query.setParameter("writerIndex", writerIndex);
+        List<FileString> files = query.list();
+
+        return files;
+    }
+
+    public List<FileString> findAllByFile(int fileInd) {
+        Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession();
+
+        Query query = session.createQuery("FROM FileString WHERE fileIndex=:fileInd");
+        query.setParameter("fileInd", fileInd);
+        List<FileString> files = query.list();
+
+        return files;
+    }
+
 
     public void save(FileString file) {
         Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession();
@@ -45,7 +74,14 @@ public class FilesDao {
         return files;
     }
 
-    public void deleteAll() {
-        HibernateSessionFactoryUtil.getSessionFactory().openSession().createQuery("DELETE FROM FileString");
-    }
+        public static void deleteAll() {
+            Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            final List<?> instances = session.createCriteria(FileString.class).list();
+            for (Object obj : instances) {
+                session.delete(obj);
+            }
+            session.getTransaction().commit();
+        }
+
 }

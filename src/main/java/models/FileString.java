@@ -33,6 +33,15 @@ public class FileString implements Serializable {
         this.writer = writer| 0;
     }
 
+    public FileString(String content, int fileIndex, int position, int writer, int index) {
+        this.fileIndex = fileIndex | 0;
+        this.position = position| 0;
+        this.content = content;
+        this.writer = writer| 0;
+        this.id = index;
+    }
+
+
     public String getContent() {
         return this.content;
     }
