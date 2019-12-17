@@ -1,27 +1,16 @@
 
 import io.reactivex.subjects.PublishSubject;
 import models.FileString;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Highlighter;
+
 
 public class FileChooserEx {
 
@@ -37,7 +26,6 @@ public class FileChooserEx {
     final int[] EndEdit = {0};
     final JTextArea editArea = new JTextArea("Edit");
     final JButton editBtnConfirm = new JButton("Confirm Edit");
-    final String[] BeforEdit = {""};
     final JPanel grid = new JPanel(new GridLayout(5, 2, 5, 0) );
     final JLabel labelError = new JLabel("Error: error");
     final JLabel clientNameLabel = new JLabel("client name");
@@ -66,6 +54,18 @@ public class FileChooserEx {
 
     public void update(List<FileString> fileStrings) throws IOException {
         this.fileStrings = fileStrings;
+        int flag = 0;
+//        for(int i=0; i< fileStrings.size(); i++) {
+//            if(fileStrings.get(i).getWriter()== Integer.parseInt(clientName ) && flag == 0) {
+//                System.out.println("fmdskzvnjzxkljvnzxk;lvnzxk;vnzxk;jv");
+//                System.out.println(fileStrings.get(i).getWriter());
+//                System.out.println(fileStrings.get(i).getPosition());
+//                this.StartEdit[0]=fileStrings.get(i).getPosition();
+//                flag++;
+//            }
+//        }
+//        this.StartEdit[0] = fileStrings.get(0).getPosition();
+//        this.EndEdit[0] = fileStrings.get(0).getPosition();
         try {
             uiService.update(fileStrings, mainText, panel, scroll);
         } catch ( BadLocationException ex) {

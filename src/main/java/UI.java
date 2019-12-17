@@ -69,10 +69,33 @@ public class UI {
             }
         }
 
-        grid.remove(labelError);
-
         startEdit = Integer.parseInt(inputEditStart.getText()); //ввод
         endEdit = Integer.parseInt(inputEditEnd.getText()); //ввод
+
+        System.out.println("--------");
+        System.out.println(startEdit);
+        System.out.println(endEdit);
+
+        for(int i = 0; i<fileStrings.size(); i++){
+            if(i>= startEdit && i<=endEdit) {
+
+                System.out.println(fileStrings.get(i).getWriter());
+                if(fileStrings.get(i).getWriter()!=0){
+                    labelError.setForeground(Color.RED);
+                    grid.add(labelError);
+                    return null;
+                }
+            }
+
+        }
+
+//        grid.remove(labelError);
+//        if(Integer.parseInt(inputEditStart.getText())>=startEdit && Integer.parseInt(inputEditStart.getText())<=endEdit) {
+//            labelError.setForeground(Color.RED);
+//            grid.add(labelError);
+//            return null;
+//        }
+
 
         countEditedRows= endEdit-startEdit;
 

@@ -27,17 +27,18 @@ public class FileString implements Serializable {
     }
 
     public FileString(String content, int fileIndex, int position, int writer) {
-        this.fileIndex = fileIndex | 0;
-        this.position = position| 0;
+        // значения по умолчанию нельзя задать
+        this.fileIndex = fileIndex;
+        this.position = position;
         this.content = content;
-        this.writer = writer| 0;
+        this.writer = writer;
     }
 
     public FileString(String content, int fileIndex, int position, int writer, int index) {
-        this.fileIndex = fileIndex | 0;
-        this.position = position| 0;
+        this.fileIndex = fileIndex;
+        this.position = position;
         this.content = content;
-        this.writer = writer| 0;
+        this.writer = writer;
         this.id = index;
     }
 

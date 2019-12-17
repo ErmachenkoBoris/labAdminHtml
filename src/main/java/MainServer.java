@@ -1,4 +1,4 @@
-import Interceptors.AuditInterceptor;
+//import Interceptors.AuditInterceptor;
 import models.FileString;
 import services.FilesService;
 
@@ -30,7 +30,7 @@ public class MainServer {
         List<ThreadClientServer> threadClientServers = new ArrayList<ThreadClientServer> ();
         int Size = 0;
 
-        AuditInterceptor Intercapt = new AuditInterceptor();
+        //AuditInterceptor Intercapt = new AuditInterceptor();
 
         try(FileReader reader = new FileReader(pathToFile))
         {
