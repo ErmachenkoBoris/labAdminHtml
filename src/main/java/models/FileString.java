@@ -24,6 +24,10 @@ public class FileString implements Serializable {
     private String content;
 
     public FileString() {
+        this.fileIndex = -100;
+        this.position = -100;
+        this.content = "";
+        this.writer = -100;
     }
 
     public FileString(String content, int fileIndex, int position, int writer) {

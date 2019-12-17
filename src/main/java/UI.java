@@ -16,6 +16,9 @@ public class UI {
 
     }
 
+    public int isOpen = 0;
+
+    public java.util.List<FileString> updateList = new ArrayList<FileString>();
 
     public List<FileString> editBtnConfirmActionPerformed(JTextArea editArea, int startEdit, JFrame formEdit, int fileIndex) {
         String editText = editArea.getText();
@@ -23,9 +26,6 @@ public class UI {
         String[] newContent = editText.split("\n"); //парсим обратно
 
         java.util.List<FileString> fileStringsEdit = new ArrayList<FileString>();
-
-        System.out.println("startEdit");
-        System.out.println(startEdit);
 
         for(int h = startEdit; h<startEdit+newContent.length; h ++) {
             FileString tmp = new FileString(newContent[h-startEdit], fileIndex, h, 0);
@@ -40,7 +40,7 @@ public class UI {
 
 
 
-    public void init(JLabel clientNameLabel, String clientName, JFrame frame, JTextPane mainText, JPanel panel, JButton editButton) {
+    public void init(JLabel clientNameLabel, String clientName, JFrame frame, JTextPane mainText, JPanel panel, JButton editButton, JLabel labelError) {
         clientNameLabel.setText("My name is " +clientName);
         editButton.setActionCommand("текст который выводится нажатием на кнопку");
 
@@ -56,15 +56,24 @@ public class UI {
 
 
     public List<FileString> editButtonActionPerfomed(JTextField inputEditStart, JTextField inputEditEnd, JLabel labelError, JPanel grid, int startEdit, int endEdit, int countEditedRows, JFrame formEdit, List<FileString> fileStrings, String clientName, JTextArea editArea, JButton editBtnConfirm, JScrollPane scroll, int widthEditFrame, int heightEditFrame) {
+        if(isOpen==0){
+            return null;
+        }
+        labelError.setText("");
+        grid.revalidate();
         List<FileString> fileStringsEdit = new ArrayList<>();
         int errorFlag = 0;
 
+        if(this.updateList.size()!=0){
+            fileStrings = this.updateList;
+        }
+
         if (((inputEditStart.getText().length() == 0) || (inputEditEnd.getText().length() == 0))) {
+            labelError.setText("Error: EmptyData");
+            labelError.setForeground(Color.RED);
+            grid.revalidate();
             if (errorFlag != 1) {
                 errorFlag = 1;
-                labelError.setForeground(Color.RED);
-                grid.add(labelError);
-                grid.revalidate();
                 return null;
             }
         }
@@ -72,37 +81,27 @@ public class UI {
         startEdit = Integer.parseInt(inputEditStart.getText()); //ввод
         endEdit = Integer.parseInt(inputEditEnd.getText()); //ввод
 
-        System.out.println("--------");
-        System.out.println(startEdit);
-        System.out.println(endEdit);
+
 
         for(int i = 0; i<fileStrings.size(); i++){
             if(i>= startEdit && i<=endEdit) {
 
                 System.out.println(fileStrings.get(i).getWriter());
                 if(fileStrings.get(i).getWriter()!=0){
+                    labelError.setText("Error: strings were reserved");
                     labelError.setForeground(Color.RED);
-                    grid.add(labelError);
+                    grid.revalidate();
                     return null;
+
                 }
             }
 
         }
 
-//        grid.remove(labelError);
-//        if(Integer.parseInt(inputEditStart.getText())>=startEdit && Integer.parseInt(inputEditStart.getText())<=endEdit) {
-//            labelError.setForeground(Color.RED);
-//            grid.add(labelError);
-//            return null;
-//        }
-
-
         countEditedRows= endEdit-startEdit;
 
         formEdit.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         final JPanel panelEdit = new JPanel();
-
-        formEdit.setVisible(true);
 
         formEdit.setLayout(new BorderLayout());
 
@@ -120,19 +119,13 @@ public class UI {
 
         endEdit++;
 
-        int flag = 0;
         int i = 0;
 
         String EditContent = "";
 
         for (i = startEdit; i < endEdit; i++) {
             FileString tmp = fileStrings.get(i);
-            if(tmp.getWriter()!=0){
-                labelError.setForeground(Color.RED);
-                grid.add(labelError);
-                grid.revalidate();
-                break;
-            }
+
             tmp.setWriter(Integer.parseInt(clientName));
             fileStringsEdit.add(tmp);
             String s =(fileStrings.get(i)).getContent();
@@ -157,13 +150,20 @@ public class UI {
     }
 
     public void openBtnActionPerformed(List<FileString> fileStrings, JTextPane mainText, JPanel panel, JScrollPane scroll) throws BadLocationException {
+
+        this.isOpen = 1;
+        if(this.updateList.size()!=0){
+            System.out.println("from upadteList");
+            fileStrings = this.updateList;
+        }
         int textCount = 0;
         String wholeContentString = "";
 
-        int[] lengthText = new int[300];
-        DefaultHighlighter.DefaultHighlightPainter[] textLights = new DefaultHighlighter.DefaultHighlightPainter[300];
+        int[] lengthText = new int[fileStrings.size()*2];
+        DefaultHighlighter.DefaultHighlightPainter[] textLights = new DefaultHighlighter.DefaultHighlightPainter[fileStrings.size()*2];
 
-        for(int t=0; t<300;t++) {
+        // init
+        for(int t=0; t<fileStrings.size();t++) {
             textLights[t]=new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
             lengthText[t]=0;
         }
@@ -185,10 +185,12 @@ public class UI {
 
             s+='\n';
             wholeContentString+=s;
-            mainText.setText(wholeContentString);
+
             lengthText[textCount]=wholeContentString.length();
             textCount++;
         }
+
+        mainText.setText(wholeContentString);
 
         for(int j=1; j< textCount; j++) {
             mainText.getHighlighter().addHighlight(lengthText[j-1], lengthText[j], textLights[j]);
@@ -216,7 +218,10 @@ public class UI {
         frame.setLocationRelativeTo(null);    }
 
     public void update(List<FileString> fileStrings, JTextPane mainText, JPanel panel, JScrollPane scroll) throws BadLocationException {
-
+        this.updateList = fileStrings;
+        if(isOpen==0){
+            return;
+        }
         if (fileStrings.size() == 0) {
             mainText.setText("");
         } else {
@@ -292,10 +297,16 @@ public class UI {
     }
 
     public int editGetStartIndex(JTextField inputEditStart) {
+        if(inputEditStart.getText().equals("")){
+            return -1;
+        }
         return Integer.parseInt(inputEditStart.getText());
     }
 
     public int editGetLastIndex(JTextField inputEditEnd) {
+        if(inputEditEnd.getText().equals("")){
+            return -1;
+        }
         return Integer.parseInt(inputEditEnd.getText());
     }
 }

@@ -27,7 +27,7 @@ public class FileChooserEx {
     final JTextArea editArea = new JTextArea("Edit");
     final JButton editBtnConfirm = new JButton("Confirm Edit");
     final JPanel grid = new JPanel(new GridLayout(5, 2, 5, 0) );
-    final JLabel labelError = new JLabel("Error: error");
+    final JLabel labelError = new JLabel("");
     final JLabel clientNameLabel = new JLabel("client name");
     JButton editButton = new JButton("edit");
     final JTextField inputEditStart = new JTextField(10);//поле ввода
@@ -49,40 +49,30 @@ public class FileChooserEx {
     public PublishSubject<List<FileString>> fileStringSubjectUpdateOldRows = PublishSubject.create();
     public PublishSubject<Boolean> fileSaveSubject = PublishSubject.create();
     private String clientName;
-    private List<FileString> fileStrings;
+    public List<FileString> fileStrings;
     public UI uiService = new UI();
 
-    public void update(List<FileString> fileStrings) throws IOException {
-        this.fileStrings = fileStrings;
-        int flag = 0;
-//        for(int i=0; i< fileStrings.size(); i++) {
-//            if(fileStrings.get(i).getWriter()== Integer.parseInt(clientName ) && flag == 0) {
-//                System.out.println("fmdskzvnjzxkljvnzxk;lvnzxk;vnzxk;jv");
-//                System.out.println(fileStrings.get(i).getWriter());
-//                System.out.println(fileStrings.get(i).getPosition());
-//                this.StartEdit[0]=fileStrings.get(i).getPosition();
-//                flag++;
-//            }
-//        }
-//        this.StartEdit[0] = fileStrings.get(0).getPosition();
-//        this.EndEdit[0] = fileStrings.get(0).getPosition();
+
+    public void update(List<FileString> newfileStrings) throws IOException {
+        this.fileStrings = newfileStrings;
         try {
-            uiService.update(fileStrings, mainText, panel, scroll);
+                uiService.update(newfileStrings, mainText, panel, scroll);
         } catch ( BadLocationException ex) {
             ex.printStackTrace();
         }
     }
 
     public void createUI(final List<FileString> fileStrings, String clientName) throws IOException {
+        System.out.println("CreatUI");
         this.fileStrings = fileStrings;
         this.clientName = clientName;
-        uiService.init(clientNameLabel, clientName, frame, mainText, panel, editButton);
+        uiService.init(clientNameLabel, clientName, frame, mainText, panel, editButton, labelError);
 
         editBtnConfirm.addActionListener(new ActionListener() {        //обработчик событий кнопки
             @Override
             public void actionPerformed(ActionEvent e) {
                 List<FileString> fileStringsEdit = uiService.editBtnConfirmActionPerformed(editArea, StartEdit[0], formEdit, fileIndex);
-                if(attemp == 0 )fileStringSubjectUpdateOldRows.onNext(fileStringsEdit);
+                if(attemp == 0)fileStringSubjectUpdateOldRows.onNext(fileStringsEdit);
                 attemp++;
             }
         });
@@ -90,25 +80,30 @@ public class FileChooserEx {
         editButton.addActionListener(new ActionListener() {      //обработчик событий кнопки
             @Override
             public void actionPerformed(ActionEvent e) {
-                StartEdit[0] = uiService.editGetStartIndex(inputEditStart);
-                EndEdit[0] = uiService.editGetLastIndex(inputEditEnd);
-                List<FileString> fileStringsEdit = uiService.editButtonActionPerfomed(
-                        inputEditStart,
-                        inputEditEnd,
-                        labelError,
-                        grid,
-                        StartEdit[0],
-                        EndEdit[0],
-                        countEditedRows,
-                        formEdit,
-                        fileStrings,
-                        clientName,
-                        editArea,
-                        editBtnConfirm,
-                        scroll,
-                        widthEditFrame,
-                        heightEditFrame);
-                fileStringSubjectSetWriter.onNext(fileStringsEdit);
+
+                    StartEdit[0] = uiService.editGetStartIndex(inputEditStart);
+                    EndEdit[0] = uiService.editGetLastIndex(inputEditEnd);
+                    List<FileString> fileStringsEdit = uiService.editButtonActionPerfomed(
+                            inputEditStart,
+                            inputEditEnd,
+                            labelError,
+                            grid,
+                            StartEdit[0],
+                            EndEdit[0],
+                            countEditedRows,
+                            formEdit,
+                            fileStrings,
+                            clientName,
+                            editArea,
+                            editBtnConfirm,
+                            scroll,
+                            widthEditFrame,
+                            heightEditFrame);
+
+                    if (fileStringsEdit != null) {
+                        fileStringSubjectSetWriter.onNext(fileStringsEdit);
+                    }
+
 
 
             }
@@ -127,7 +122,11 @@ public class FileChooserEx {
                     try {
                         uiService.openBtnActionPerformed(fileStrings, mainText, panel, scroll);
                     } catch ( BadLocationException ex) {
-                        ex.printStackTrace();
+                        ex.printStackTrace();        panel.validate();
+        panel.repaint();
+
+        scroll.validate();
+        scroll.repaint();
                     }
                 }
         });
@@ -142,6 +141,7 @@ public class FileChooserEx {
         grid.add(inputEditStart);
         grid.add(inputEditEnd);
         grid.add(editButton);
+        grid.add(labelError);
 
         panel.add(grid,BorderLayout.SOUTH);
         frame.getContentPane().add(scroll);
@@ -150,12 +150,4 @@ public class FileChooserEx {
 
     }
 
-    public void txtFile(String cnvrt, Path file)
-    {
-        try {
-            Files.write(file, cnvrt.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
