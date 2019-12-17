@@ -29,19 +29,11 @@ public class ThreadClientServer implements Runnable {
     public void run() {
 
         try {
-            // инициируем каналы общения в сокете, для сервера
-            // канал записи в сокет следует инициализировать сначала канал чтения для избежания блокировки выполнения программы на ожидании заголовка в сокете
             DataOutputStream out = new DataOutputStream(clientDialog.getOutputStream());
             ObjectOutputStream outObject = new ObjectOutputStream(clientDialog.getOutputStream());
             ObjectInputStream inputObject = new ObjectInputStream(clientDialog.getInputStream());
-// канал чтения из сокета
+
             DataInputStream in = new DataInputStream(clientDialog.getInputStream());
-            System.out.println("DataInputStream created");
-
-            System.out.println("DataOutputStream  created");
-
-            // начинаем диалог с подключенным клиентом в цикле, пока сокет не
-            // закрыт клиентом
 
             updateRequireBase.subscribe(aBoolean -> {
                 if(aBoolean){
@@ -52,23 +44,15 @@ public class ThreadClientServer implements Runnable {
 
                     outObject.writeObject(listFiles);
                     out.writeUTF("update");
-
                 }
             });
 
 
             while (!clientDialog.isClosed()) {
-
-
-
-
                 System.out.println("Server try to send listFiles to Client");
 
                outObject.writeObject(listFiles);
-
                 out.writeUTF(String.valueOf(clientName));
-                // серверная нить ждёт в канале чтения (inputstream) получения
-                // данных клиента после получения данных считывает их
 
                 List<FileString> listFilesNew = (List<FileString>)inputObject.readObject();
                 String mode = in.readUTF();
@@ -81,7 +65,6 @@ public class ThreadClientServer implements Runnable {
                         System.out.println(listFilesNew.get(i).getContent());
                         System.out.println(listFilesNew.get(i).getWriter());
                     }
-                    // и выводит в консоль
                     System.out.println("READ from clientDialog message - " + mode);
                 }
 
@@ -93,10 +76,7 @@ public class ThreadClientServer implements Runnable {
                     filesService.updateFileSWriter(listFilesNew);
                     updateRequire.onNext(true);
                 }
-
-
                 if(mode.equalsIgnoreCase("NewRows")) {
-
 
                     System.out.println("OKOKOKOK");
                     System.out.println(listFilesNew.size());
@@ -154,24 +134,14 @@ public class ThreadClientServer implements Runnable {
 
                 if (mode.equalsIgnoreCase("quit")) {
 
-                    // если кодовое слово получено то инициализируется закрытие
-                    // серверной нити
                     System.out.println("Client initialize connections suicide ...");
                     out.writeUTF("Server reply - " + mode + " - OK");
                     break;
                 }
 
-                // если условие окончания работы не верно - продолжаем работу -
-                // отправляем эхо обратно клиенту
-
                 System.out.println("Server try writing to channel");
-                //out.writeUTF("Server reply - " + entry + " - OK");
-              //  System.out.println("Server Wrote message to clientDialog.");
 
-                // освобождаем буфер сетевых сообщений
                 out.flush();
-
-                // возвращаемся в началло для считывания нового сообщения
             }
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,11 +152,9 @@ public class ThreadClientServer implements Runnable {
             System.out.println("Client disconnected");
             System.out.println("Closing connections & channels.");
 
-            // закрываем сначала каналы сокета !
             in.close();
             out.close();
 
-            // потом закрываем сокет общения с клиентом в нити моносервера
             clientDialog.close();
 
             System.out.println("Closing connections & channels - DONE.");

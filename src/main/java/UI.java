@@ -59,6 +59,10 @@ public class UI {
         if(isOpen==0){
             return null;
         }
+
+        startEdit = Integer.parseInt(inputEditStart.getText()); //ввод
+        endEdit = Integer.parseInt(inputEditEnd.getText()); //ввод
+
         labelError.setText("");
         grid.revalidate();
         List<FileString> fileStringsEdit = new ArrayList<>();
@@ -78,10 +82,15 @@ public class UI {
             }
         }
 
-        startEdit = Integer.parseInt(inputEditStart.getText()); //ввод
-        endEdit = Integer.parseInt(inputEditEnd.getText()); //ввод
-
-
+        if ((startEdit >=fileStrings.size()) || endEdit >=fileStrings.size() || (startEdit <0) || (endEdit < 0)) {
+            labelError.setText("Error: WrongData");
+            labelError.setForeground(Color.RED);
+            grid.revalidate();
+            if (errorFlag != 1) {
+                errorFlag = 1;
+                return null;
+            }
+        }
 
         for(int i = 0; i<fileStrings.size(); i++){
             if(i>= startEdit && i<=endEdit) {
